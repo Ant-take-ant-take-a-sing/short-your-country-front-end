@@ -19,20 +19,15 @@ const shuffle = (accent = 0) => [
   { roughness: 0.15, metalness: 0.6 },
   { roughness: 0.25, metalness: 0.5 },
   { roughness: 0.2, metalness: 0.55 },
-  // { roughness: 0.2, metalness: 0.55 },
-  // { roughness: 0.2, metalness: 0.55 },
-  // { roughness: 0.2, metalness: 0.55 },
-  // { roughness: 0.2, metalness: 0.55 },
+  { roughness: 0.2, metalness: 0.55 },
 ];
 
 const flagDefinitions = [
   { name: "Indonesia", colors: ["#ff0000", "#ffffff"] },
   { name: "USA", colors: ["#3c3b6e", "#ffffff", "#b22234"] },
-  // { name: "Japan", colors: ["#ffffff", "#ff0000"] },
   { name: "Germany", colors: ["#000000", "#dd0000", "#ffce00"] },
   { name: "France", colors: ["#0055a4", "#ffffff", "#ef4135"] },
   { name: "Italy", colors: ["#009246", "#ffffff", "#ce2b37"] },
-  // { name: "Brazil", colors: ["#009b3a", "#ffdf00", "#002776"] },
   { name: "UK", colors: ["#012169", "#ffffff", "#c8102e"] },
 ];
 
@@ -57,15 +52,32 @@ function drawVerticalStripes(ctx: CanvasRenderingContext2D, size: number, colors
   });
 }
 
+// Simple in-memory cache to avoid recreating textures across re-renders/mounts
+const textureCache: Map<string, THREE.Texture> = new Map();
+
 // bikin texture bendera sesuai flag.name
 function createFlagTexture(flag: { name: string; colors: string[] } | undefined) {
   if (!flag) return null;
 
+  // return cached texture if present
+  const cacheKey = `${flag.name}:${flag.colors.join(",")}`;
+  const cached = textureCache.get(cacheKey);
+  if (cached) return cached;
+
   const size = 512;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
+  // Prefer OffscreenCanvas if available for better performance in some browsers
+  const canvas: HTMLCanvasElement | OffscreenCanvas =
+    typeof (globalThis as any).OffscreenCanvas !== "undefined"
+      ? new (globalThis as any).OffscreenCanvas(size, size)
+      : (() => {
+          const c = document.createElement("canvas");
+          c.width = size;
+          c.height = size;
+          return c;
+        })();
+
+  // @ts-ignore getContext types differ between Canvas and OffscreenCanvas
+  const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
   if (!ctx) return null;
 
   const { name, colors } = flag;
@@ -86,7 +98,8 @@ function createFlagTexture(flag: { name: string; colors: string[] } | undefined)
       ctx.fillStyle = circle ?? "#ff0000";
       const radius = size * 0.2;
       ctx.beginPath();
-      ctx.arc(size / 2, size / 2, radius, 1, Math.PI * 2);
+      // start angle 0 for a full circle (fix minor visual glitch)
+      ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
       ctx.fill();
       break;
     }
@@ -192,8 +205,11 @@ function createFlagTexture(flag: { name: string; colors: string[] } | undefined)
     }
   }
 
-  const tex = new THREE.CanvasTexture(canvas);
+  const tex = new THREE.CanvasTexture(canvas as any);
   tex.needsUpdate = true;
+  // mild filtering for UI background usage
+  tex.anisotropy = 1;
+  textureCache.set(cacheKey, tex);
   return tex;
 }
 
@@ -207,12 +223,12 @@ export function GlobeHero() {
   return (
     <div className="fixed inset-0 -z-10">
       <Canvas
-       style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%" }}
         flat
         shadows
         onClick={click}
         dpr={[1, 1.5]}
-        gl={{ antialias: false }}
+        gl={{ antialias: false, powerPreference: "high-performance" }}
         camera={{ position: [3, 0, 26], fov: 24, near: 10, far: 60 }}
       >
         <color attach="background" args={["#020617"]} />
@@ -329,7 +345,8 @@ function Sphere({
     >
       <BallCollider args={[1]} />
       <mesh ref={ref} castShadow receiveShadow>
-        <sphereGeometry args={[1.2, 64, 64]} />
+        {/* Reduce segment count to lower fragment load without large quality loss */}
+        <sphereGeometry args={[1.2, 32, 32]} />
         <meshStandardMaterial
           // warna base netral, semua pattern dari texture
           color="#ffffff"

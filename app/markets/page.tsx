@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { NationMarketChart } from "@/components/charts/NationMarketChart";
+import type { DerivativeNews } from "@/components/types/derivativenews";
 
 type Market = {
   id: string;
@@ -14,6 +15,8 @@ type Market = {
 
 type Timeframe = "1m" | "5m" | "1h" | "1d";
 type ChartType = "area" | "candlestick";
+
+
 
 const mockMarkets: Market[] = [
   {
@@ -46,7 +49,22 @@ export default function MarketsPage() {
   const [selected, setSelected] = useState<Market>(mockMarkets[0]);
   const [timeframe, setTimeframe] = useState<Timeframe>("1m");
   const [chartType, setChartType] = useState<ChartType>("area");
+    const handleLong = (news: DerivativeNews) => {
+        console.log("LONG from news:", news);
+        // TODO:
+        // - panggil viem / wagmi untuk open long di smart contract
+        // - atau kirim request ke backend (REST / GraphQL)
+    };
 
+    // callback ketika user swipe SHORT
+    const handleShort = (news: DerivativeNews) => {
+        console.log("SHORT from news:", news);
+    };
+
+    // callback ketika user swipe SKIP
+    const handleSkip = (news: DerivativeNews) => {
+        console.log("SKIP news:", news.id);
+    };
   const timeframes: Timeframe[] = ["1m", "5m", "1h", "1d"];
 
   return (
@@ -237,5 +255,6 @@ export default function MarketsPage() {
         </div>
       </div>
     </div>
+
   );
 }
