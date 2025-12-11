@@ -16,7 +16,7 @@
     "gsap": "^3.13.0",
     "lightweight-charts": "^5.0.9",
     "maath": "^0.10.8",
-    "next": "16.0.4",
+    "next": "^16.0.8",
     "postprocessing": "^6.38.0",
     "react": "19.2.0",
     "react-country-flag": "^3.1.0",
