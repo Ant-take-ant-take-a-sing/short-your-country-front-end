@@ -1,0 +1,12 @@
+{
+    "chainId": 5003,
+    "chainName": "Mantle Sepolia",
+    "contracts": {
+        "CountryRegistry": "0x9996b08b2b7a930965c4b941b92c9101e6f4a352",
+        "LiquidityPool": "0x3ecb7239c7a8190db059ab8406b3d455f1c4c214",
+        "CountryTrading": "0x57df258dea444b94a82669df1e6fbfd35bed8cf0",
+        "CollateralToken": "0xb70c008C221d71d49aa479a12e4DDb435a997425"
+    },
+    "collateralTokenSymbol": "USDT",
+    "explorerUrl": "https://explorer.sepolia.mantle.xyz"
+}

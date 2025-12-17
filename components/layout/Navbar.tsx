@@ -16,7 +16,7 @@ export function Navbar() {
         {/* Brand */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-sm font-semibold tracking-tight text-slate-50">
-            Nation<span className="text-emerald-400">Index</span>
+            Geo<span className="text-emerald-400">Bet</span>
           </span>
         </Link>
 
