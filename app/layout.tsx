@@ -5,7 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Web3Provider } from '../lib/WalletConfig';
 import BottomNavbar from '@/components/layout/BottomNavbar';
 export const metadata: Metadata = {
-  title: 'Nation Index',
+  title: 'Geo Bet',
   description: 'On-chain long/short index of nations',
 };
 
