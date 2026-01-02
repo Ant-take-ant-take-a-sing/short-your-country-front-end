@@ -7,9 +7,8 @@ import {
 import {
   COLLATERAL_TOKEN_ADDRESS,
   COUNTRY_TRADING_ADDRESS,
-  countryTradingAbi,
-  erc20Abi,
-} from "@/config/contracts";
+} from "@/config/addresses";
+import { Erc20Abi, CountryTradingAbi } from "@/config/abis";
 import { parseUnits, maxUint256 } from "viem";
 import { useState } from "react";
 
@@ -23,7 +22,7 @@ export function usePortfolioActions() {
   const { data: currentAllowance, refetch: refetchAllowance } = useReadContract(
     {
       address: COLLATERAL_TOKEN_ADDRESS,
-      abi: erc20Abi,
+      abi: Erc20Abi,
       functionName: "allowance",
       args: [address!, COUNTRY_TRADING_ADDRESS],
     }
@@ -38,7 +37,7 @@ export function usePortfolioActions() {
       return "Insufficient wallet balance (ETH/USDT).";
     }
     if (msg.includes("CountryTrading:")) {
-       return msg.split("CountryTrading:")[1].split("\n")[0];
+      return msg.split("CountryTrading:")[1].split("\n")[0];
     }
     return "Transaction failed. Please try again.";
   };
@@ -54,7 +53,7 @@ export function usePortfolioActions() {
         setIsApproving(true);
         const approveTx = await writeContractAsync({
           address: COLLATERAL_TOKEN_ADDRESS,
-          abi: erc20Abi,
+          abi: Erc20Abi,
           functionName: "approve",
           args: [COUNTRY_TRADING_ADDRESS, maxUint256],
         });
@@ -65,7 +64,7 @@ export function usePortfolioActions() {
 
       const tx = await writeContractAsync({
         address: COUNTRY_TRADING_ADDRESS,
-        abi: countryTradingAbi,
+        abi: CountryTradingAbi,
         functionName: "deposit",
         args: [amount],
       });
@@ -83,7 +82,7 @@ export function usePortfolioActions() {
       const amount = parseUnits(amountStr, 18);
       const tx = await writeContractAsync({
         address: COUNTRY_TRADING_ADDRESS,
-        abi: countryTradingAbi,
+        abi: CountryTradingAbi,
         functionName: "withdraw",
         args: [amount],
       });

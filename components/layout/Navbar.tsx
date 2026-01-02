@@ -8,7 +8,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useReadContract } from "wagmi";
 import { Search, X, ChevronDown } from "lucide-react";
 import { hexToString, trim } from "viem";
-import { COUNTRY_REGISTRY_ADDRESS, CountryRegistryAbi } from "@/config/contracts";
+import { COUNTRY_REGISTRY_ADDRESS } from "@/config/addresses";
+import { CountryRegistryAbi } from "@/config/abis";
 
 const cleanSymbol = (hexStr: string): string => {
   try {

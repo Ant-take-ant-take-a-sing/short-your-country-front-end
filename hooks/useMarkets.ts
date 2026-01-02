@@ -1,7 +1,8 @@
 "use client";
 
 import { useReadContract } from "wagmi";
-import { CountryRegistryAbi, COUNTRY_REGISTRY_ADDRESS } from "@/config/contracts";
+import { COUNTRY_REGISTRY_ADDRESS } from "@/config/addresses";
+import { CountryRegistryAbi } from "@/config/abis";
 
 export type Market = {
   id: string;

@@ -2,9 +2,8 @@ import { useAccount, useReadContracts } from "wagmi";
 import {
   COLLATERAL_TOKEN_ADDRESS,
   COUNTRY_TRADING_ADDRESS,
-  countryTradingAbi,
-  erc20Abi,
-} from "@/config/contracts";
+} from "@/config/addresses";
+import { Erc20Abi, CountryTradingAbi } from "@/config/abis";
 import { formatUnits } from "viem";
 
 export function usePortfolioStats() {
@@ -14,13 +13,13 @@ export function usePortfolioStats() {
     contracts: [
       {
         address: COLLATERAL_TOKEN_ADDRESS,
-        abi: erc20Abi,
+        abi: Erc20Abi,
         functionName: "balanceOf",
         args: [address!],
       },
       {
         address: COUNTRY_TRADING_ADDRESS,
-        abi: countryTradingAbi,
+        abi: CountryTradingAbi,
         functionName: "getCollateralBalance",
         args: [address!],
       },
