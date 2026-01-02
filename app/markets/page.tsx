@@ -99,7 +99,7 @@ export default function MarketsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] px-4 py-8 md:px-8">
+    <div className="min-h-screen px-4 py-8 md:px-8">
       {/* Background Fetchers */}
       {contractMarkets.map((mkt) => (
         <MarketPriceFetcher
