@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-slate-950 text-slate-100">
+      <body className="bg-slate-950 text-slate-100 pb-20 md:pb-0">
         <Web3Provider>
           <Navbar />
           <main className="mx-auto max-w-7xl px-4 pb-10 pt-6">{children}</main>
