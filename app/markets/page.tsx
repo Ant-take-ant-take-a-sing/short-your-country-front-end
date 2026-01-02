@@ -6,10 +6,8 @@ import { useReadContract } from "wagmi";
 import { formatUnits } from "viem";
 import { Search, TrendingUp, Lock } from "lucide-react";
 import { useMarkets, Market } from "@/hooks/useMarkets";
-import {
-  CountryRegistryAbi,
-  COUNTRY_REGISTRY_ADDRESS,
-} from "@/config/contracts";
+import { COUNTRY_REGISTRY_ADDRESS } from "@/config/addresses";
+import { CountryRegistryAbi } from "@/config/abis";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { MarketBottomSheet } from "@/components/markets/MarketBottomSheet";
 
