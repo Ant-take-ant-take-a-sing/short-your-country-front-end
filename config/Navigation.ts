@@ -13,6 +13,5 @@ export const bottomNav: NavItem[] = [
 ];
 
 export const mainNav: NavItem[] = [
-  ...bottomNav,
-  { href: "/strategies", label: "Strategies" },
+  ...bottomNav
 ];
