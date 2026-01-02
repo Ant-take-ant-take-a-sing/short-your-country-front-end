@@ -6,10 +6,8 @@ import { useReadContract } from "wagmi";
 import { formatUnits } from "viem";
 import { Search, TrendingUp, Lock } from "lucide-react";
 import { useMarkets, Market } from "@/hooks/useMarkets";
-import {
-  CountryRegistryAbi,
-  COUNTRY_REGISTRY_ADDRESS,
-} from "@/config/contracts";
+import { COUNTRY_REGISTRY_ADDRESS } from "@/config/addresses";
+import { CountryRegistryAbi } from "@/config/abis";
 
 // --- MOCK DATA ---
 const COMING_SOON_MARKETS: Partial<Market>[] = [
