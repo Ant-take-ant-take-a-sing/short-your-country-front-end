@@ -10,6 +10,8 @@ import {
   CountryRegistryAbi,
   COUNTRY_REGISTRY_ADDRESS,
 } from "@/config/contracts";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { MarketBottomSheet } from "@/components/markets/MarketBottomSheet";
 
 // --- MOCK DATA ---
 const COMING_SOON_MARKETS: Partial<Market>[] = [
@@ -51,6 +53,8 @@ export default function MarketsPage() {
   const { markets: contractMarkets, isLoading } = useMarkets();
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
+
 
   // Update Harga Real-time (useCallback mencegah infinite loop di useEffect child)
   const handlePriceUpdate = useCallback((id: string, price: number) => {
@@ -61,7 +65,8 @@ export default function MarketsPage() {
   }, []);
 
   const handleNavigateToTrade = (marketId: string) => {
-    router.push(`/trade/${marketId}`);
+    router.push(`/trade`);
+    // router.push(`/trade/${marketId}`);
   };
 
   const filterMarkets = (markets: any[]) => {
@@ -71,6 +76,16 @@ export default function MarketsPage() {
         m.symbol.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
+
+  const handleMarketClick = (mkt: Market) => {
+    setSelectedMarket(mkt);
+  // if (window.innerWidth < 768) {
+  //   setSelectedMarket(mkt);
+  // } else {
+  //   handleNavigateToTrade(mkt.id);
+  // }
+};
+
 
   const activeFiltered = filterMarkets(contractMarkets);
   const comingSoonFiltered = filterMarkets(COMING_SOON_MARKETS);
@@ -129,7 +144,9 @@ export default function MarketsPage() {
                 return (
                   <div
                     key={mkt.id}
-                    onClick={() => handleNavigateToTrade(mkt.id)}
+                    // onClick={() => handleNavigateToTrade(mkt.id)}
+                    // onClick={() => handleMarketClick(mkt)}
+                    onClick={() => console.log("ini di klik oi")}
                     className="group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40 p-5 transition-all hover:border-emerald-500/50 hover:bg-slate-900/80"
                   >
                     <div className="flex items-start justify-between">
@@ -196,7 +213,8 @@ export default function MarketsPage() {
             {activeFiltered.map((mkt) => (
               <div
                 key={mkt.id}
-                onClick={() => handleNavigateToTrade(mkt.id)}
+                // onClick={() => handleMarketClick(mkt)}
+                
                 className="grid cursor-pointer grid-cols-12 items-center border-b border-slate-800/50 px-4 py-4 transition-colors hover:bg-slate-800/40"
               >
                 <div className="col-span-5 flex items-center gap-3 md:col-span-4">
@@ -230,9 +248,18 @@ export default function MarketsPage() {
                   ${(mkt.volume24h || 0).toLocaleString()}
                 </div>
                 <div className="col-span-3 text-right md:col-span-2">
-                  <button className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-500">
-                    Trade
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // handleNavigateToTrade(mkt.id);
+                      handleMarketClick(mkt);
+                    }} 
+                    className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-500">
+                    Chart
                   </button>
+                  {/* <button onClick={() => handleMarketClick(mkt)} className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-500">
+                    chart
+                  </button> */}
                 </div>
               </div>
             ))}
@@ -268,6 +295,19 @@ export default function MarketsPage() {
               <div className="p-8 text-center text-slate-500">
                 No country found matching "{searchQuery}"
               </div>
+            )}
+
+            {selectedMarket && (
+              <BottomSheet
+                isOpen={!!selectedMarket}
+                onClose={() => setSelectedMarket(null)}
+              >
+                <MarketBottomSheet
+                  market={selectedMarket}
+                  price={prices[selectedMarket.id] || 0}
+                  onTrade={() => handleNavigateToTrade(selectedMarket.id)}
+                />
+              </BottomSheet>
             )}
           </div>
         </div>
