@@ -21,15 +21,35 @@ export const MarketsToolbar = ({
   setIsSearchOpen,
 }: MarketsToolbarProps) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) searchInputRef.current.focus();
+    if (isSearchOpen && searchInputRef.current) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
   }, [isSearchOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isSearchOpen &&
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isSearchOpen, setIsSearchOpen]);
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-white/5 pb-4 min-h-[50px]">
       <div
-        className={`flex items-center gap-2 transition-opacity duration-300 overflow-x-auto no-scrollbar mask-gradient-right ${
+        className={`flex items-center gap-1 transition-opacity duration-300 overflow-x-auto no-scrollbar ${
           isSearchOpen
             ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto"
             : "opacity-100"
@@ -39,10 +59,10 @@ export const MarketsToolbar = ({
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-md text-xs font-medium transition-all whitespace-nowrap ${
+            className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap ${
               activeTab === tab
-                ? "bg-white/10 text-white"
-                : "bg-transparent text-neutral-500 hover:text-neutral-300"
+                ? "text-white font-bold bg-white/5"
+                : "text-neutral-500 hover:text-white"
             }`}
           >
             {tab === "ALL"
@@ -50,13 +70,16 @@ export const MarketsToolbar = ({
               : tab === "FAVORITES"
               ? "Favorites"
               : tab === "GAINERS"
-              ? "Top Gainers"
-              : "Top Losers"}
+              ? "Gainers"
+              : "Losers"}
           </button>
         ))}
       </div>
 
-      <div className="flex items-center justify-end relative">
+      <div
+        ref={searchContainerRef}
+        className="flex items-center justify-end relative"
+      >
         <button
           onClick={() => setIsSearchOpen(true)}
           className={`p-2 text-neutral-400 hover:text-white transition-all duration-300 ${
@@ -82,11 +105,9 @@ export const MarketsToolbar = ({
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onBlur={() => setTimeout(() => setIsSearchOpen(false), 100)}
-            className="w-full bg-transparent border-b border-transparent focus:border-white/20 py-2 text-sm text-white placeholder-neutral-600 focus:outline-none transition-all"
+            className="w-full bg-transparent border-b border-transparent focus:border-white/20 py-1 text-sm text-white placeholder-neutral-600 focus:outline-none transition-all"
           />
           <button
-            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               setIsSearchOpen(false);
               setSearchQuery("");
