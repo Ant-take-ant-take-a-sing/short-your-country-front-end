@@ -6,7 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { mainNav } from "@/config/Navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useReadContract } from "wagmi";
-import { Search, X, ChevronDown } from "lucide-react";
+import {
+  Search,
+  X,
+  ChevronDown,
+  Menu,
+  Wallet as WalletIcon,
+} from "lucide-react";
 import { hexToString, trim } from "viem";
 import { COUNTRY_REGISTRY_ADDRESS } from "@/config/addresses";
 import { CountryRegistryAbi } from "@/config/abis";
@@ -26,6 +32,7 @@ export function Navbar() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: rawCountries } = useReadContract({
@@ -61,15 +68,20 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   const handleSelectCountry = (id: string) => {
     router.push(`/trade`);
     setSearchQuery("");
     setIsSearchFocused(false);
+    setIsMobileMenuOpen(false);
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#020202]/80 backdrop-blur-md border-b border-white/5 supports-[backdrop-filter]:bg-[#020202]/60">
-      <nav className="flex w-full items-center justify-between px-6 py-2">
+    <header className="sticky top-0 z-50 w-full bg-[#020202]/80 backdrop-blur-xl border-b border-white/5 supports-[backdrop-filter]:bg-[#020202]/60">
+      <nav className="flex w-full items-center justify-between px-4 md:px-6 py-3">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 group">
             <span className="text-xl font-bold tracking-tight text-white group-hover:opacity-80 transition-opacity">
@@ -101,7 +113,7 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <div className="hidden md:block relative" ref={searchContainerRef}>
             <div
               className={`relative flex items-center transition-all duration-300 ${
@@ -119,18 +131,15 @@ export function Navbar() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
               />
-              {searchQuery ? (
+              {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
                   className="absolute right-2 text-neutral-500 hover:text-neutral-300"
                 >
                   <X className="h-3 w-3" />
                 </button>
-              ) : (
-                <div className="absolute right-2 pointer-events-none"></div>
               )}
             </div>
-
             {isSearchFocused && searchQuery && (
               <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-white/10 bg-[#0A0A0A]/95 backdrop-blur-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
                 <div className="px-3 py-2 border-b border-white/5">
@@ -194,22 +203,22 @@ export function Navbar() {
                   {!connected ? (
                     <button
                       onClick={openConnectModal}
-                      className="rounded-lg bg-emerald-600 px-5 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_20px_rgba(16,185,129,0.5)]"
+                      className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                     >
-                      Connect Wallet
+                      Connect
                     </button>
                   ) : chain.unsupported ? (
                     <button
                       onClick={openChainModal}
-                      className="rounded-lg bg-rose-500/10 border border-rose-500/50 px-4 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/20"
+                      className="rounded-lg bg-rose-500/10 border border-rose-500/50 px-3 py-2 text-xs font-bold text-rose-400"
                     >
-                      Wrong Network
+                      Wrong Net
                     </button>
                   ) : (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={openChainModal}
-                        className="group flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 p-1.5 pr-3 hover:border-emerald-500/30 hover:bg-white/10 transition-all"
+                        className="flex items-center justify-center gap-2 rounded-md border border-white/10 bg-white/5 p-1.5 md:pl-2.5 md:pr-2 hover:border-emerald-500/30 hover:bg-white/10 transition-all"
                         title={chain.name}
                       >
                         <div className="relative h-5 w-5 overflow-hidden rounded-full">
@@ -223,17 +232,17 @@ export function Navbar() {
                             <div className="h-full w-full bg-neutral-700"></div>
                           )}
                         </div>
-                        <ChevronDown className="h-3 w-3 text-neutral-500 group-hover:text-neutral-300" />
+                        <ChevronDown className="hidden md:block h-3 w-3 text-neutral-500 group-hover:text-neutral-300" />
                       </button>
 
                       <button
                         onClick={openAccountModal}
-                        className="flex items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 py-1.5 px-1.5 hover:border-emerald-500/30 hover:bg-white/10 transition-all"
+                        className="flex items-center gap-1 rounded-md border border-white/10 bg-white/5 py-2 pl-2.5 px-2 hover:border-emerald-500/30 hover:bg-white/10 transition-all"
                       >
-                        <span className="rounded-md px-2 py-1 text-xs font-mono font-bold text-white">
+                        <span className="flex items-center gap-2 rounded-md text-xs font-mono font-bold text-white">
                           {account.displayName}
+                          <ChevronDown className="hidden md:block h-3 w-3 text-neutral-500 group-hover:text-neutral-300" />
                         </span>
-                        <ChevronDown className="h-3 w-3 text-neutral-500 group-hover:text-neutral-300" />
                       </button>
                     </div>
                   )}
@@ -241,8 +250,59 @@ export function Navbar() {
               );
             }}
           </ConnectButton.Custom>
+
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-neutral-400 hover:text-white transition-colors relative z-50 ml-1"
+          >
+            <div className="relative w-6 h-6">
+              <Menu
+                className={`absolute inset-0 w-6 h-6 transition-all duration-300 ease-out ${
+                  isMobileMenuOpen
+                    ? "opacity-0 rotate-90 scale-50"
+                    : "opacity-100 rotate-0 scale-100"
+                }`}
+              />
+              <X
+                className={`absolute inset-0 w-6 h-6 transition-all duration-300 ease-out ${
+                  isMobileMenuOpen
+                    ? "opacity-100 rotate-0 scale-100"
+                    : "opacity-0 -rotate-90 scale-50"
+                }`}
+              />
+            </div>
+          </button>
         </div>
       </nav>
+
+      {isMobileMenuOpen && (
+        <div className="absolute top-[calc(100%+1px)] left-0 w-full bg-[#020202] backdrop-blur-xl border-b border-white/10 shadow-2xl md:hidden overflow-hidden origin-top animate-in slide-in-from-top-2 fade-in duration-300">
+          <div className="p-4 flex flex-col gap-2">
+            {mainNav.map((item, index) => {
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  className={[
+                    "flex items-center justify-between px-4 py-3.5 rounded-sm text-sm font-medium transition-all animate-in slide-in-from-left-4 fade-in duration-500 fill-mode-backwards",
+                    isActive
+                      ? "bg-emerald-500/10 text-emerald-400"
+                      : "text-neutral-400 hover:text-white hover:bg-white/5",
+                  ].join(" ")}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

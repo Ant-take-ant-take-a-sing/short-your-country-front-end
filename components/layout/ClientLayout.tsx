@@ -12,9 +12,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   return (
     <>
       {!isDashboard && <Navbar />}
-      <main className={`mx-auto w-full ${!isDashboard ? "pb-20" : ""}`}>
-        {children}
-      </main>
+      <main className="mx-auto w-full">{children}</main>
       {!isDashboard && <BottomNavbar />}
     </>
   );
