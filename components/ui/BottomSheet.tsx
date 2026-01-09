@@ -39,7 +39,7 @@ export function BottomSheet({ isOpen, onClose, children }: BottomSheetProps) {
           rounded-t-2xl
           bg-black
           border-t border-slate-800
-          px-5 pb-6 pt-3
+          px-5 pb-12 md:pb-6 pt-3
           animate-slide-up
         "
       >
