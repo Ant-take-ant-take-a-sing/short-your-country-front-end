@@ -72,7 +72,7 @@ export function useOraclePrices(countryCode:string) {
       setData(
         logs.map(log => ({
           time: Number(log.args.updatedAt),
-          value: Number(log.args.price) / 1e6,
+          value: Number(log.args.price) / 1e8,
         }))
       );
 
