@@ -20,6 +20,8 @@ import {
   Info,
 } from "lucide-react";
 import type { DerivativeNews } from "@/components/types/derivativenews";
+import confetti from "canvas-confetti";
+
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(Draggable);
@@ -63,6 +65,8 @@ function getCountryCode(country: string | undefined | null): string | null {
   return null;
 }
 
+
+
 export const SwipeCard: React.FC<SwipeCardProps> = ({
   newsList,
   onLong,
@@ -79,6 +83,57 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
   const tradeAmounts = [1, 5, 10] as const;
   const [tradeIndex, setTradeIndex] = useState(1);
   const tradeAmount = tradeAmounts[tradeIndex];
+
+  const successRef = useRef<HTMLDivElement | null>(null);
+  const showSuccess = (
+  action: "long" | "short",
+  country: string,
+  amount: number
+) => {
+  const el = successRef.current;
+  if (!el) return;
+
+  // 🎆 Firework
+  confetti({
+    particleCount: 120,
+    spread: 90,
+    startVelocity: 45,
+    origin: { y: 0.6 },
+  });
+
+  // 🎯 Text animation
+  gsap.fromTo(
+  el,
+  { opacity: 0, scale: 0.6 },
+  {
+    opacity: 1,
+    scale: 1,
+    duration: 1.0,
+    ease: "back.out(1.8)",
+    onStart: () => {
+      const actionText = el.querySelector("div")!.children[0] as HTMLElement;
+      const detailText = el.querySelector("div")!.children[1] as HTMLElement;
+
+      // 🔴🟢 set warna berdasarkan action
+      actionText.style.color =
+        action === "long" ? "#22c55e" /* green */ : "#ef4444" /* red */;
+
+      actionText.textContent = action.toUpperCase();
+      detailText.textContent = `${country.toUpperCase()} $${amount}`;
+    },
+  }
+);
+
+
+  gsap.to(el, {
+    opacity: 0,
+    scale: 0.9,
+    delay: 0.9,
+    duration: 0.25,
+    ease: "power2.in",
+  });
+};
+
 
   const cardRef = useRef<HTMLDivElement | null>(null);
   const draggableInstance = useRef<globalThis.Draggable[] | null>(null);
@@ -113,6 +168,28 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
   const currentNews = displayedNews[activeIndex] ?? null;
   const hasCard = !!currentNews;
 
+  const handleActionSuccess = async (
+  action: SwipeAction,
+  current: DerivativeNews
+) => {
+  if (action === "long") {
+    await onLong?.(current, tradeAmount);
+    showSuccess("long", current.country, tradeAmount);
+  }
+
+  if (action === "short") {
+    await onShort?.(current, tradeAmount);
+    showSuccess("short", current.country, tradeAmount);
+  }
+
+  if (action === "skip") {
+    onSkip?.(current);
+  }
+
+  setActiveIndex((prev) => prev + 1);
+};
+
+
   const handleSwipeComplete = useCallback(
     (action: SwipeAction) => {
       if (isLoading) return;
@@ -146,11 +223,8 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
         ...tweenVars,
         duration: 0.4,
         ease: "power1.in",
-        onComplete: () => {
-          if (action === "long") onLong?.(current, tradeAmount);
-          if (action === "short") onShort?.(current, tradeAmount);
-          if (action === "skip") onSkip?.(current);
-
+        onComplete:  () => {
+          handleActionSuccess(action,current)
           setLastAction(null);
           setActiveIndex((prev) => prev + 1);
           gsap.set(cardElement, {
@@ -402,7 +476,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
       </div>
 
       {/* 3. CIRCULAR ACTION BUTTONS (Bottom - Fixed) */}
-      <div className="flex items-center gap-6 pb-2 shrink-0 z-20">
+      <div className="flex items-center gap-6 md:pb-2 pb-16 shrink-0 z-20">
         {/* SHORT (Left) */}
         <button
           disabled={isLoading}
@@ -435,6 +509,21 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           <ArrowRight className="w-6 h-6 text-emerald-500 group-hover:text-emerald-400 transition-colors" />
         </button>
       </div>
+      {/* SUCCESS OVERLAY */}
+    <div
+      ref={successRef}
+      className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center opacity-0"
+    >
+      <div className="text-center">
+        <div className="text-6xl font-black tracking-widest text-emerald-400 drop-shadow-lg">
+          LONG
+        </div>
+        <div className="mt-2 text-xl font-bold tracking-wide text-white">
+          INDONESIA $5
+        </div>
+      </div>
+    </div>
+
       {isLoading && (
         <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent" />
