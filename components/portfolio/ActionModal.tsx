@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Loader2, X, Wallet } from "lucide-react";
+import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 interface ActionModalProps {
   isOpen: boolean;
@@ -24,75 +26,165 @@ export function ActionModal({
 }: ActionModalProps) {
   const [amount, setAmount] = useState("");
 
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
+  useEffect(() => {
+    if (isOpen) setAmount("");
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
   if (!isOpen) return null;
 
+  const handlePercentage = (percent: number) => {
+    const val = parseFloat(balance || "0");
+    const formatted = (val * percent).toFixed(6).replace(/\.?0+$/, "");
+    setAmount(formatted);
+  };
+
+  const handleSubmit = () => {
+    if (!isConnected) {
+      openConnectModal?.();
+    } else {
+      onConfirm(amount);
+    }
+  };
+
+  const isDeposit = type === "deposit";
+  const buttonBg = isDeposit
+    ? "bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+    : "bg-white text-black hover:bg-neutral-200";
+
+  const getFontSize = (length: number) => {
+    if (length > 20) return { int: "text-xl", dec: "text-base" };
+    if (length > 14) return { int: "text-2xl", dec: "text-lg" };
+    if (length > 10) return { int: "text-3xl", dec: "text-xl" };
+    if (length > 7) return { int: "text-4xl", dec: "text-2xl" };
+    return { int: "text-5xl", dec: "text-3xl" };
+  };
+
+  const formatDisplay = (val: string) => {
+    if (!val)
+      return <span className="text-neutral-600 text-5xl font-bold">0</span>;
+
+    const [int, dec] = val.split(".");
+    const { int: intSize, dec: decSize } = getFontSize(val.length);
+
+    return (
+      <div className="flex items-baseline justify-center tracking-tight w-full px-4 transition-all duration-200">
+        <span className={`${intSize} font-bold text-white`}>{int}</span>
+        {dec !== undefined && (
+          <span className={`${decSize} font-bold text-neutral-500`}>
+            .{dec}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
-    // Overlay
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      {/* Modal Content */}
-      <div className="w-full max-w-sm rounded-3xl border border-neutral-800 bg-[#0A0A0A] p-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-300">
-        {/* Header */}
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div className="w-full max-w-sm rounded-[2rem] border border-white/10 bg-[#0A0A0A] p-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 ease-out">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold capitalize text-white">
-            {type} USDT
+          <h3 className="text-lg font-bold capitalize text-white tracking-wide">
+            {type}
           </h3>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-neutral-800 transition text-neutral-400 hover:text-white"
+            className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Feedback Alert (Success/Error/Loading) */}
-        {feedback && (
+        {feedback ? (
           <div
-            className={`mb-4 p-3 rounded-xl border text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300 ${
+            className={`p-6 rounded-3xl border text-center animate-in fade-in zoom-in duration-300 ${
               feedback.type === "success"
-                ? "bg-emerald-900/20 border-emerald-500/30 text-emerald-400"
+                ? "bg-emerald-500/10 border-emerald-500/20"
                 : feedback.type === "error"
-                ? "bg-rose-900/20 border-rose-500/30 text-rose-400"
-                : "bg-neutral-800 border-neutral-700 text-neutral-300"
+                ? "bg-rose-500/10 border-rose-500/20"
+                : "bg-neutral-900 border-white/5"
             }`}
           >
             {feedback.type === "loading" && (
-              <Loader2 className="w-4 h-4 animate-spin mt-0.5" />
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-emerald-500" />
             )}
-            <div>
-              <p>{feedback.message}</p>
-              {feedback.hash && (
-                <a
-                  href={`https://explorer.sepolia.mantle.xyz/tx/${feedback.hash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-xs mt-1 block opacity-70 hover:opacity-100"
-                >
-                  View on Explorer
-                </a>
-              )}
-            </div>
+            <p
+              className={`font-medium ${
+                feedback.type === "success"
+                  ? "text-emerald-400"
+                  : feedback.type === "error"
+                  ? "text-rose-400"
+                  : "text-white"
+              }`}
+            >
+              {feedback.message}
+            </p>
+            {feedback.hash && (
+              <a
+                href={`https://explorer.sepolia.mantle.xyz/tx/${feedback.hash}`}
+                target="_blank"
+                className="text-xs text-neutral-500 underline mt-2 block hover:text-white"
+              >
+                View Transaction
+              </a>
+            )}
           </div>
-        )}
+        ) : (
+          <div className="space-y-8">
+            <div className="relative py-6 text-center">
+              <p className="text-[10px] text-neutral-500 font-mono mb-1 uppercase tracking-wider">
+                Enter Amount (USDT)
+              </p>
 
-        {/* Input Form (Sembunyikan jika sukses agar bersih) */}
-        {!feedback?.hash && (
-          <div className="space-y-4">
-            <div className="rounded-2xl bg-neutral-900 p-4 border border-neutral-800 transition-colors focus-within:border-neutral-700">
-              <div className="flex justify-between text-xs mb-2 text-neutral-500">
-                <span>Amount</span>
-                <span>Max: {parseFloat(balance).toFixed(2)}</span>
+              <div className="relative z-0 min-h-[60px] flex items-center justify-center pointer-events-none overflow-hidden">
+                {formatDisplay(amount)}
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full bg-transparent text-2xl font-bold text-white placeholder:text-neutral-700 focus:outline-none"
-                />
+
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-text text-center caret-white"
+                autoFocus
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center px-1">
+                <span className="text-xs text-neutral-500">
+                  Balance Available
+                </span>
+                <span className="text-xs font-mono font-bold text-white">
+                  {parseFloat(balance).toLocaleString()} USDT
+                </span>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2">
+                {[25, 50, 75].map((pct) => (
+                  <button
+                    key={pct}
+                    onClick={() => handlePercentage(pct / 100)}
+                    className="py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-neutral-400 hover:text-white transition-colors"
+                  >
+                    {pct}%
+                  </button>
+                ))}
                 <button
                   onClick={() => setAmount(balance)}
-                  className="text-xs font-bold text-emerald-500 hover:text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md transition-colors hover:bg-emerald-500/20"
+                  className={`py-2.5 rounded-xl text-xs font-bold transition-colors ${
+                    isDeposit
+                      ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20"
+                      : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
                 >
                   MAX
                 </button>
@@ -100,21 +192,50 @@ export function ActionModal({
             </div>
 
             <button
-              onClick={() => onConfirm(amount)}
-              disabled={!amount || isPending || parseFloat(amount) <= 0}
-              className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 active:scale-[0.98] ${
-                isPending
-                  ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
-                  : type === "deposit"
-                  ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 hover:shadow-emerald-900/40"
-                  : "bg-white hover:bg-neutral-200 text-black shadow-lg shadow-white/10"
+              onClick={handleSubmit}
+              disabled={
+                isPending ||
+                (!isConnected ? false : !amount || parseFloat(amount) <= 0)
+              }
+              className={`w-full py-4 rounded-xl font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                !isConnected
+                  ? "bg-blue-600 hover:bg-blue-500 text-white"
+                  : buttonBg
               }`}
             >
-              {isPending ? "Processing..." : `Confirm ${type}`}
+              {isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                </>
+              ) : !isConnected ? (
+                <>
+                  <Wallet className="w-4 h-4" /> Connect Wallet
+                </>
+              ) : (
+                `Confirm ${type}`
+              )}
             </button>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function ArrowUpRightIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <line x1="7" y1="17" x2="17" y2="7" />
+      <polyline points="7 7 17 7 17 17" />
+    </svg>
   );
 }

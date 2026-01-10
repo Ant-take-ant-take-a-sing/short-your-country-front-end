@@ -13,7 +13,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     <>
       {!isDashboard && <Navbar />}
       <main className="mx-auto w-full">{children}</main>
-      {!isDashboard && <BottomNavbar />}
     </>
   );
 }
