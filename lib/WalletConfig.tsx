@@ -1,11 +1,8 @@
 "use client";
 
 import "@rainbow-me/rainbowkit/styles.css";
-import {
-  getDefaultConfig,
-  RainbowKitProvider,
-} from "@rainbow-me/rainbowkit";
-import { WagmiProvider } from "wagmi";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { http, WagmiProvider } from "wagmi";
 import {
   mainnet,
   base,
@@ -13,25 +10,24 @@ import {
   baseSepolia,
   mantleSepoliaTestnet,
 } from "wagmi/chains";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 const queryClient = new QueryClient();
 
-// sesuaikan chains sama kebutuhan kamu (misal cuma baseSepolia)
 export const wagmiConfig = getDefaultConfig({
   appName: "Nation Index",
-  projectId:
-    process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "",
-  chains: [baseSepolia, base, sepolia, mainnet, mantleSepoliaTestnet],
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "",
+  chains: [mantleSepoliaTestnet, baseSepolia, base, sepolia, mainnet],
   ssr: true,
-  // optiona  l: custom RPC
-  // transports: {
-  //   [baseSepolia.id]: http("https://base-sepolia.g.alchemy.com/v2/XXX"),
-  // },
+
+  transports: {
+    [mantleSepoliaTestnet.id]: http("https://rpc.sepolia.mantle.xyz"),
+    [baseSepolia.id]: http(),
+    [mainnet.id]: http(),
+    [sepolia.id]: http(),
+    [base.id]: http(),
+  },
 });
 
 type Web3ProviderProps = {

@@ -23,7 +23,8 @@ import {
 } from "lucide-react";
 import type { DerivativeNews } from "@/components/types/derivativenews";
 import confetti from "canvas-confetti";
-import { usePublicClient } from "wagmi";
+import { usePublicClient, useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(Draggable);
@@ -54,7 +55,6 @@ function shuffleArray<T>(items: T[]): T[] {
 function getCountryCode(country: string | undefined | null): string | null {
   if (!country) return null;
   const c = country.toLowerCase().trim();
-
   if (/\b(us|usa|united states|america)\b/.test(c)) return "US";
   if (/\b(uk|gb|britain|united kingdom|england)\b/.test(c)) return "GB";
   if (/\b(eu|euro|europe)\b/.test(c)) return "EU";
@@ -65,7 +65,6 @@ function getCountryCode(country: string | undefined | null): string | null {
   if (/\b(singapore|sg)\b/.test(c)) return "SG";
   if (/\b(russia|ru)\b/.test(c)) return "RU";
   if (/\b(germany|de)\b/.test(c)) return "DE";
-
   return null;
 }
 
@@ -77,9 +76,11 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
 }) => {
   const publicClient = usePublicClient();
 
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+
   const [shuffledNews, setShuffledNews] = useState<DerivativeNews[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-
   const [filterCode, setFilterCode] = useState<string | null>(null);
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -230,6 +231,23 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
         return;
       }
 
+      if (!isConnected) {
+        gsap.to(cardElement, {
+          x: 0,
+          y: 0,
+          rotation: 0,
+          duration: 0.5,
+          ease: "elastic.out(1, 0.6)",
+          clearProps: "all",
+        });
+        if (openConnectModal) {
+          openConnectModal();
+        } else {
+          showError("Please Connect Wallet");
+        }
+        return;
+      }
+
       setLoadingStep("SIGN");
       setIsProcessing(true);
 
@@ -313,6 +331,8 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
       onSkip,
       tradeAmount,
       publicClient,
+      isConnected,
+      openConnectModal,
     ]
   );
 
